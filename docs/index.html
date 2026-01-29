@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="DiffErase: Black-box Audio Watermark Removal via Diffusion Priors">
+  <meta name="keywords" content="DiffErase, Audio Watermark Removal, Diffusion Models, Audio Security">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DiffErase: Black-box Audio Watermark Removal via Diffusion Priors</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  
+  <style>
+    .audio-demo-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    .audio-demo-table th,
+    .audio-demo-table td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+      vertical-align: top;
+    }
+    .audio-demo-table th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+    .audio-demo-table .row-header {
+      background-color: #f9f9f9;
+      font-weight: bold;
+      text-align: left;
+      padding-left: 15px;
+    }
+    .audio-player-container {
+      margin: 10px 0;
+    }
+    .audio-player-container audio {
+      width: 100%;
+    }
+    .spectrogram-container {
+      width: 100%;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .spectrogram-container img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .section-title {
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+    .audio-demo-table {
+      font-size: 0.9em;
+    }
+    .audio-demo-table td {
+      min-width: 150px;
+    }
+  </style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+
+          <h1 class="title is-2 publication-title">DiffErase: Black-box Audio Watermark Removal <br>via Diffusion Priors</h1>
+          
+          <h2 class="subtitle is-4">
+            Anonymous Authors
+          </h2>
+
+          <div class="column has-text-centered">
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/DiffErase/Differase"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0rem;">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+
+        <!-- Overview illustration -->
+        <figure class="image has-text-centered" style="margin-top:0.5rem; margin-bottom:1rem;">
+          <img src="./figs/illustration.png" 
+              alt="DiffErase system overview" 
+              style="max-width:100%; height:auto;">
+          <figcaption class="has-text-centered is-italic has-text-grey is-size-6" 
+                      style="margin-top:0.25rem;">
+            DiffErase system overview
+          </figcaption>
+        </figure>
+
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>With the rise of AI-generated audio, watermarking has become widely used for detecting misuse and protecting intellectual property. However, adversaries may try to remove these watermarks, making it critical to evaluate how well watermarking schemes withstand removal attacks. Existing attacks are often impractical: they either noticeably degrade perceptual quality or require access to the watermarking scheme. We propose DiffErase, a black-box watermark removal attack that assumes no knowledge of the target watermarking scheme while maintaining perceptual quality. DiffErase perturbs watermarked audio to an intermediate diffusion noise level and regenerates it using a pretrained denoising model, effectively suppressing watermark signals. Theoretical analysis and extensive experiments demonstrate that inaudible audio watermarks are highly vulnerable: across multiple audio domains, DiffErase consistently removes watermarks while preserving perceptual quality. These findings highlight the need for future audio watermarking designs to consider diffusion-based threats.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+
+<!-- Interactive Audio Demo -->
+<section class="section" id="demo">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered"> Audio Samples</h2>
+    <p class="has-text-centered has-text-grey is-size-7" style="margin-top: 0.5rem; margin-bottom: 2rem;">
+      The audio samples are randomly selected from each domain (speech, music, environment). Each sample corresponds to one watermarking method (AudioSeal, WavMark, TimbreWM, Perth, or SilentCipher).
+    </p>
+    
+    <!-- Speech Section -->
+    <div class="section-title">
+      <h3 class="title is-4">Speech</h3>
+      <table class="audio-demo-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>AudioSeal</th>
+            <th>WavMark</th>
+            <th>TimbreWM</th>
+            <th>Perth</th>
+            <th>SilentCipher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Original Audio Row -->
+          <tr>
+            <th class="row-header">Original Audio</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5105-28233-0007.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5105-28233-0007_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5105-28241-0015.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5105-28241-0015_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5683-32865-0015.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5683-32865-0015_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/3575-170457-0043.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_3575-170457-0043_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/2300-131720-0016.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_2300-131720-0016_original.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- Watermarked Audio Row -->
+          <tr>
+            <th class="row-header">Watermarked Audio</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5105-28233-0007_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5105-28233-0007_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5105-28241-0015_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5105-28241-0015_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5683-32865-0015_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5683-32865-0015_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/3575-170457-0043_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_3575-170457-0043_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/2300-131720-0016_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_2300-131720-0016_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- DiffErase-mel Row -->
+          <tr>
+            <th class="row-header">DiffErase-mel</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5105-28233-0007_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5105-28233-0007_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5105-28241-0015_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5105-28241-0015_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5683-32865-0015_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5683-32865-0015_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/3575-170457-0043_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_3575-170457-0043_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/2300-131720-0016_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_2300-131720-0016_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- DiffErase-latent Row -->
+          <tr>
+            <th class="row-header">DiffErase-latent</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5105-28233-0007_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5105-28233-0007_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5105-28241-0015_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5105-28241-0015_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/5683-32865-0015_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_5683-32865-0015_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/3575-170457-0043_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_3575-170457-0043_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./speech/2300-131720-0016_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/speech_2300-131720-0016_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Music Section -->
+    <div class="section-title">
+      <h3 class="title is-4">Music</h3>
+      <table class="audio-demo-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>AudioSeal</th>
+            <th>WavMark</th>
+            <th>TimbreWM</th>
+            <th>Perth</th>
+            <th>SilentCipher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Original Audio Row -->
+          <tr>
+            <th class="row-header">Original Audio</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/050952.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_050952_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/023039.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_023039_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/084096.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_084096_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/043698.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_043698_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/048439.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_048439_original.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- Watermarked Audio Row -->
+          <tr>
+            <th class="row-header">Watermarked Audio</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/050952_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_050952_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/023039_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_023039_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/084096_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_084096_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/043698_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_043698_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/048439_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_048439_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- DiffErase-mel Row -->
+          <tr>
+            <th class="row-header">DiffErase-mel</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/050952_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_050952_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/023039_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_023039_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/084096_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_084096_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/043698_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_043698_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/048439_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_048439_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- DiffErase-latent Row -->
+          <tr>
+            <th class="row-header">DiffErase-latent</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/050952_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_050952_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/023039_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_023039_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/084096_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_084096_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/043698_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_043698_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./music/048439_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/music_048439_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Environment Section -->
+    <div class="section-title">
+      <h3 class="title is-4">Environment</h3>
+      <table class="audio-demo-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>AudioSeal</th>
+            <th>WavMark</th>
+            <th>TimbreWM</th>
+            <th>Perth</th>
+            <th>SilentCipher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Original Audio Row -->
+          <tr>
+            <th class="row-header">Original Audio</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20080504_horse_drawn_00.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20080504_horse_drawn_00_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20090827_pony.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20090827_pony_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20100422_castril_playground.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20100422_castril_playground_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/FOLEY_Ext_Garbage_Hauling_001.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_FOLEY_Ext_Garbage_Hauling_001_original.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/Owls.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_Owls_original.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- Watermarked Audio Row -->
+          <tr>
+            <th class="row-header">Watermarked Audio</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20080504_horse_drawn_00_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20080504_horse_drawn_00_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20090827_pony_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20090827_pony_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20100422_castril_playground_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20100422_castril_playground_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/FOLEY_Ext_Garbage_Hauling_001_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_FOLEY_Ext_Garbage_Hauling_001_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/Owls_watermarked.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_Owls_watermarked.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- DiffErase-mel Row -->
+          <tr>
+            <th class="row-header">DiffErase-mel</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20080504_horse_drawn_00_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20080504_horse_drawn_00_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20090827_pony_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20090827_pony_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20100422_castril_playground_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20100422_castril_playground_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/FOLEY_Ext_Garbage_Hauling_001_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_FOLEY_Ext_Garbage_Hauling_001_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/Owls_differase_mel_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_Owls_differase_mel.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+          <!-- DiffErase-latent Row -->
+          <tr>
+            <th class="row-header">DiffErase-latent</th>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20080504_horse_drawn_00_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20080504_horse_drawn_00_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20090827_pony_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20090827_pony_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/20100422_castril_playground_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_20100422_castril_playground_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/FOLEY_Ext_Garbage_Hauling_001_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_FOLEY_Ext_Garbage_Hauling_001_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+            <td>
+              <div class="audio-player-container">
+                <audio controls>
+                  <source src="./env/Owls_differase_latent_noise0_1.wav" type="audio/wav">
+                </audio>
+              </div>
+              <div class="spectrogram-container">
+                <img src="./figs/env_Owls_differase_latent.png" alt="Spectrogram">
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+</body>
+</html>
