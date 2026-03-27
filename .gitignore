@@ -1,0 +1,37 @@
+.DS_Store
+.AppleDouble
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs / experiment tracking
+logs/
+log/
+*.log
+wandb/
+mlruns/
+
+# Model / training artifacts (usually large)
+checkpoints/
+checkpoint/
+*.ckpt
+*.pth
+*.pt
+*.bin
+*.safetensors
+*.onnx
+*.npz
+
