@@ -15,6 +15,7 @@ import torch.nn.functional
 import torch
 import numpy as np
 import torchaudio
+import soundfile as sf
 import json
 
 
@@ -394,7 +395,8 @@ class AudioDataset(Dataset):
 
     def read_wav_file(self, filename):
         # waveform, sr = librosa.load(filename, sr=None, mono=True) # 4 times slower
-        waveform, sr = torchaudio.load(filename)
+        waveform, sr = sf.read(filename, dtype="float32", always_2d=True)
+        waveform = torch.from_numpy(waveform.T)  # [channels, samples], as torchaudio.load
 
         waveform, random_start = self.random_segment_wav(
             waveform, target_length=int(sr * self.duration)

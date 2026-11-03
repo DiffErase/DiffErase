@@ -20,11 +20,9 @@ if bigvgan_path not in sys.path:
     sys.path.insert(0, bigvgan_path)
 
 import numpy as np
-import pandas as pd
 import torch
 import librosa
 from PIL import Image as PILImage
-from datasets import Dataset, DatasetDict, Features, Image, Value
 from tqdm.auto import tqdm
 from meldataset import get_mel_spectrogram
 
@@ -113,6 +111,10 @@ def _collect_audio_files(args):
 
 
 def main(args):
+    # Only needed for building the training dataset.
+    import pandas as pd
+    from datasets import Dataset, DatasetDict, Features, Image, Value
+
     mel = BigVGANMel(
         x_res=args.resolution[0], y_res=args.resolution[1],
         hop_length=args.hop_length, sample_rate=args.sample_rate,

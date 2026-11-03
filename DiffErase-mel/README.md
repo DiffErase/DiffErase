@@ -5,7 +5,7 @@ Train the mel-spectrogram diffusion model used by DiffErase for watermark remova
 ## Setup
 
 ```bash
-pip install .
+pip install -r ../requirements.txt accelerate datasets pandas
 ```
 
 ## Data

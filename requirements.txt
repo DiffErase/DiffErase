@@ -1,0 +1,16 @@
+torch>=2.1
+torchaudio>=2.1
+torchvision
+diffusers>=0.25
+huggingface_hub>=0.34
+pytorch-lightning>=2.0
+librosa
+matplotlib
+soundfile
+numpy
+pandas
+scipy
+einops
+pyyaml
+pillow
+tqdm

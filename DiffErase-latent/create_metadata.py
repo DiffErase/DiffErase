@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Script to create metadata files for LibriSpeech dataset
-Train: most files, Val: 100 files, Test: 100 files
+Create train/val/test metadata for a folder of .wav files and register it in dataset_root.json.
+Train: most files, Val: n_val files, Test: n_test files
 """
+import argparse
 import os
 import json
 import random
@@ -41,15 +42,22 @@ def create_metadata_json(wav_files, output_path):
     print(f"Total files: {len(data)}")
 
 def main():
-    librispeech_root = "/path/to/LibriSpeech/train-clean-100"
-    metadata_dir = "data/dataset/metadata/librispeech"
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("audio_dir", help="Folder containing .wav files (searched recursively)")
+    parser.add_argument("--name", default="librispeech", help="Dataset name used in the config `data` entries")
+    parser.add_argument("--n_val", type=int, default=100)
+    parser.add_argument("--n_test", type=int, default=100)
+    args = parser.parse_args()
+
+    audio_root = os.path.abspath(args.audio_dir)
+    metadata_dir = f"data/dataset/metadata/{args.name}"
     
     # Create metadata directory
     os.makedirs(metadata_dir, exist_ok=True)
     
     # Find all wav files
-    print(f"Scanning {librispeech_root} for wav files...")
-    all_wav_files = find_wav_files(librispeech_root)
+    print(f"Scanning {audio_root} for wav files...")
+    all_wav_files = find_wav_files(audio_root)
     print(f"Found {len(all_wav_files)} wav files")
     
     # Shuffle for random split
@@ -57,8 +65,8 @@ def main():
     random.shuffle(all_wav_files)
     
     # Split: val=100, test=100, rest for train
-    n_val = 100
-    n_test = 100
+    n_val = args.n_val
+    n_test = args.n_test
     
     val_files = all_wav_files[:n_val]
     test_files = all_wav_files[n_val:n_val+n_test]
@@ -82,14 +90,14 @@ def main():
     else:
         dataset_root = {}
     
-    dataset_root["librispeech"] = librispeech_root
+    dataset_root[args.name] = audio_root
     
     if "metadata" not in dataset_root:
         dataset_root["metadata"] = {}
     if "path" not in dataset_root["metadata"]:
         dataset_root["metadata"]["path"] = {}
     
-    dataset_root["metadata"]["path"]["librispeech"] = {
+    dataset_root["metadata"]["path"][args.name] = {
         "train": os.path.join(metadata_dir, "train.json"),
         "val": os.path.join(metadata_dir, "val.json"),
         "test": os.path.join(metadata_dir, "test.json")

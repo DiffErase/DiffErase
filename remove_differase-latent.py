@@ -55,15 +55,22 @@ def parse_args():
         help="CUDA device index (e.g., 0,1,2,3).",
     )
     parser.add_argument(
+        "--domain",
+        type=str,
+        default="speech",
+        choices=["speech", "music", "env"],
+        help="Audio domain; selects the default checkpoint.",
+    )
+    parser.add_argument(
         "--checkpoint",
         type=str,
-        default="DiffErase-latent/data/checkpoints/*.ckpt",
-        help="DiffErase-latent checkpoint path.",
+        default=None,
+        help="DiffErase-latent checkpoint path (default: DiffErase-latent/data/checkpoints/differase-latent-{domain}.ckpt).",
     )
     parser.add_argument(
         "--config",
         type=str,
-        default="DiffErase-latent/audioldm_train/config/*.yaml",
+        default="DiffErase-latent/audioldm_train/config/differase/differase_unconditional.yaml",
         help="DiffErase-latent config path.",
     )
     parser.add_argument(
@@ -83,11 +90,11 @@ def parse_args():
 
 
 def load_audio_file(file_path, sampling_rate=16000, duration=10.24):
-    waveform, sr = torchaudio.load(file_path)
+    waveform, sr = sf.read(file_path, dtype="float32", always_2d=True)
+    waveform = torch.from_numpy(waveform.T)
 
     if sr != sampling_rate:
-        resampler = torchaudio.transforms.Resample(sr, sampling_rate)
-        waveform = resampler(waveform)
+        waveform = torchaudio.functional.resample(waveform, sr, sampling_rate)
 
     if waveform.shape[0] > 1:
         waveform = torch.mean(waveform, dim=0, keepdim=True)
@@ -285,7 +292,7 @@ def main():
     print(f"Output dir: {output_dir}")
     print(f"Noise strength: {noise_strength}")
     print(f"Batch size: {args.batch_size}")
-    print(f"Checkpoint: {args.checkpoint}")
+    print(f"Domain: {args.domain}")
     print(f"Config: {args.config}")
     print(f"Generator name (suffix): {generator}")
     print("=" * 80)
@@ -304,6 +311,8 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     repo_root = _script_dir
+    if args.checkpoint is None:
+        args.checkpoint = f"DiffErase-latent/data/checkpoints/differase-latent-{args.domain}.ckpt"
     checkpoint_path = repo_root / args.checkpoint
     config_path = repo_root / args.config
 
@@ -349,6 +358,8 @@ def main():
     original_cwd = os.getcwd()
     os.chdir(LATENT_ROOT)
     try:
+        # The DiffErase checkpoint already contains the VAE weights.
+        config["model"]["params"]["first_stage_config"]["params"]["reload_from_ckpt"] = None
         model = instantiate_from_config(config["model"])
         ckpt = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
         model.load_state_dict(ckpt["state_dict"], strict=False)

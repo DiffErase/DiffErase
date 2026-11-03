@@ -14,7 +14,10 @@ from audioldm_train.modules.diffusionmodules.distributions import (
     DiagonalGaussianDistribution,
 )
 
-import wandb
+try:
+    import wandb  # Only used for training logs.
+except ImportError:
+    wandb = None
 from audioldm_train.utilities.model_util import instantiate_from_config
 import soundfile as sf
 

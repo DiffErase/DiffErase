@@ -110,6 +110,7 @@ def main(args):
         with torch.no_grad():
             latent_resolution = vqvae.encode(torch.zeros((1, 1) + resolution)).latent_dist.sample().shape[2:]
 
+    mel = None  # Mel conversion is done by BigVGANMel, not stored in the pipeline.
     if args.from_pretrained is not None:
         pipeline = AudioDiffusionPipeline.from_pretrained(args.from_pretrained)
         mel = pipeline.mel

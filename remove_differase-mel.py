@@ -39,10 +39,17 @@ def parse_args():
         help="CUDA device index (e.g., 0,1,2,3).",
     )
     parser.add_argument(
+        "--domain",
+        type=str,
+        default="speech",
+        choices=["speech", "music", "env"],
+        help="Audio domain; selects the default model directory",
+    )
+    parser.add_argument(
         "--model_path",
         type=str,
-        default="DiffErase-mel/models/*.ckpt",
-        help="DiffErase-mel model directory",
+        default=None,
+        help="DiffErase-mel model directory (default: DiffErase-mel/models/differase-mel-{domain})",
     )
     parser.add_argument(
         "--batch_size",
@@ -242,6 +249,8 @@ def main():
     watermarked_dir = Path(args.watermarked_dir).expanduser().resolve()
     output_dir = Path(args.output_dir).expanduser().resolve()
     noise_strength = float(args.noise_level)
+    if args.model_path is None:
+        args.model_path = f"DiffErase-mel/models/differase-mel-{args.domain}"
 
     if args.generator_name:
         generator = args.generator_name

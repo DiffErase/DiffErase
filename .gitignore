@@ -35,3 +35,10 @@ checkpoint/
 *.onnx
 *.npz
 
+
+# Hugging Face download cache
+.cache/
+
+# Downloaded DiffErase checkpoints
+DiffErase-latent/data/checkpoints/
+DiffErase-mel/models/

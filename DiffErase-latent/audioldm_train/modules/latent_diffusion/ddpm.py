@@ -2,7 +2,6 @@ from multiprocessing.sharedctypes import Value
 import statistics
 import sys
 import os
-from tkinter import E
 
 import torch
 import torch.nn as nn
@@ -15,7 +14,6 @@ from functools import partial
 from tqdm import tqdm
 from torchvision.utils import make_grid
 from pytorch_lightning.utilities.rank_zero import rank_zero_only
-from audioldm_train.conditional_models import *
 import datetime
 
 from audioldm_train.utilities.model_util import (
@@ -31,6 +29,20 @@ from audioldm_train.utilities.diffusion_util import (
     extract_into_tensor,
     noise_like,
 )
+
+
+# AudioLDM's conditional encoders are not included (DiffErase is unconditional).
+# These placeholders keep the conditional-model checks below valid; they never match.
+class CLAPAudioEmbeddingClassifierFreev2:
+    pass
+
+
+class CLAPGenAudioMAECond:
+    pass
+
+
+class SequenceGenAudioMAECond:
+    pass
 
 from audioldm_train.modules.diffusionmodules.ema import LitEma
 from audioldm_train.modules.diffusionmodules.distributions import (
@@ -109,12 +121,7 @@ class DDPM(pl.LightningModule):
         self.log_every_t = log_every_t
         self.first_stage_key = first_stage_key
         self.sampling_rate = sampling_rate
-        self.clap = CLAPAudioEmbeddingClassifierFreev2(
-            pretrained_path="data/checkpoints/clap_music_speech_audioset_epoch_15_esc_89.98.pt",
-            sampling_rate=self.sampling_rate,
-            embed_mode="audio",
-            amodel="HTSAT-base",
-        )
+        self.clap = None  # DiffErase is unconditional; no CLAP ranking.
 
         if self.global_rank == 0:
             self.evaluator = evaluator
@@ -2285,16 +2292,3 @@ class LatentDiffusionVAELearnable(LatentDiffusion):
             on_step=True,
             on_epoch=False,
         )
-
-
-if __name__ == "__main__":
-    import yaml
-
-    model_config = "/mnt/fast/nobackup/users/hl01486/projects/general_audio_generation/stable-diffusion/models/ldm/text2img256/config.yaml"
-    model_config = yaml.load(open(model_config, "r"), Loader=yaml.FullLoader)
-
-    latent_diffusion = LatentDiffusion(**model_config["model"]["params"])
-
-    import ipdb
-
-    ipdb.set_trace()
